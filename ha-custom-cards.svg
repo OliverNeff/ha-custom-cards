@@ -1,0 +1,7 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect x="20" y="20" width="472" height="472" rx="40" ry="40" fill="none" stroke="#003366" stroke-width="20" />
+  <path d="M150 260 L256 160 L362 260 L362 360 L150 360 Z" fill="none" stroke="#003366" stroke-width="20" />
+  <text x="256" y="330" font-family="Arial" font-size="90" font-weight="bold" text-anchor="middle" fill="#003366">CC</text>
+  <text x="256" y="430" font-family="Arial" font-size="60" font-weight="bold" text-anchor="middle" fill="#003366">custom-cards</text>
+</svg>
