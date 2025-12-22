@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  bump_build_release:
+  build_dist:
     runs-on: ubuntu-latest
     # Endlosschleife vermeiden: eigene Bot-Commits sollen nicht erneut triggern
     if: github.actor != 'github-actions[bot]'
@@ -26,7 +26,7 @@ jobs:
         with:
           fetch-depth: 0  # Tags/History benötigt
 
-      - name: Setup Node & enable Corepack (für Yarn Berry)
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
@@ -48,16 +48,12 @@ jobs:
           yarn --version
           yarn version --patch -m "chore: bump version to %s [skip ci]"
           git push origin HEAD:main --follow-tags
-          
-      # 2) Commits + Tag pushen
-      - name: Push bump + tag
-        run: git push origin HEAD:main --follow-tags
 
-      # 3) Build (Passe den Befehl bei Bedarf an, z. B. Vite/Rollup)
+      # 2) Build (Passe den Befehl bei Bedarf an, z. B. Vite/Rollup)
       - name: Build
         run: yarn build
 
-      # 4) dist/ als Artefakt bereitstellen (beim Workflow-Run downloadbar)
+      # 3) dist/ als Artefakt bereitstellen (beim Workflow-Run downloadbar)
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
@@ -65,23 +61,3 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 14
-
-      # 5) dist zippen für Release-Asset
-      - name: Zip dist
-        run: |
-          rm -f dist.zip
-          (cd dist && zip -r ../dist.zip .)
-
-      # 6) Release erstellen/aktualisieren und dist.zip anhängen
-      - name: Create/Update GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ steps.bump.outputs.version }}
-          name: Release v${{ steps.bump.outputs.version }}
-          body: "Automatisch erzeugtes Release der transit-messages-card v${{ steps.bump.outputs.version }}."
-          draft: false
-          prerelease: false
-          files: |
-            ha-custom-cards.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
