@@ -42,27 +42,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 1) Patch-Version in package.json erhöhen (ohne npm/yarn Subcommand)
-      #    - liest x.y.z, erhöht z -> schreibt zurück
-      #    - erstellt Commit mit [skip ci] & Tag vX.Y.Z
-      - name: Bump patch version (package.json)
-        id: bump
+       # 1) Patch-Version in package.json erhöhen
+      - name: Bump patch
         run: |
-          node -e "
-            const fs=require('fs');
-            const pkg=JSON.parse(fs.readFileSync('package.json','utf8'));
-            const [maj,min,pat]=pkg.version.split('.').map(Number);
-            const newVer=`${maj}.${min}.${pat+1}`;
-            pkg.version=newVer;
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-            console.log('NEW_VERSION=' + newVer);
-          "
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
-          git add package.json
-          git commit -m "chore: bump version to ${NEW_VERSION} [skip ci]" || echo "No changes to commit"
-          git tag "v${NEW_VERSION}"
-
+          yarn --version
+          yarn version --patch -m "chore: bump version to %s [skip ci]"
+          git push origin HEAD:main --follow-tags
+          
       # 2) Commits + Tag pushen
       - name: Push bump + tag
         run: git push origin HEAD:main --follow-tags
