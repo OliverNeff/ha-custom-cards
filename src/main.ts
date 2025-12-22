@@ -41,7 +41,7 @@ const hass: any = {
             attributes: {
                 next_departures: [
                     {
-                        train: 'RE', trainNumber: '24525', destination: 'Darmstadt Hbf',
+                        train: 'RE', trainNumber: '24524', destination: 'Darmstadt Hbf',
                         scheduledDeparture: '14:22', departure_current: '14:27',
                         scheduledPlatform: '7', platform: '7',
                         delayDeparture: 5,

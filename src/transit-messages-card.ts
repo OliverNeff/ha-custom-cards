@@ -1,8 +1,7 @@
-
 // src/transit-messages-card.ts
 // Transit Messages Card (TypeScript)
 // Autor: Oliver + Copilot (TS-Port)
-// Version: 1.0.1-ts
+import {version} from '../package.json';
 
 type Primitive = string | number | boolean | null | undefined;
 
@@ -81,7 +80,9 @@ interface ItemHtmlOptions {
 }
 
 class TransitMessagesCard extends HTMLElement {
-  static get version(): string { return '1.0.1'; }
+  static get version(): string {
+    return version;
+  }
 
   private _hass?: HomeAssistant;
   private _config?: TransitMessagesCardConfig;
@@ -274,8 +275,9 @@ class TransitMessagesCard extends HTMLElement {
     if (delayBadge) pills.push(delayBadge);
     if (cancelled) pills.push(`<span class="pill red">Storniert</span>`);
 
+    const color = trainNumberToColor(+trainNumber);
     const headerLine = trainNumber
-      ? `<div class="small muted">#<strong>${this._escape(trainNumber)}</strong></div>`
+        ? `<div class="small muted" style="background:${color}; margin:0.5rem 0; padding: 0.1rem 0.3rem; border-radius:4px;">#<strong>${this._escape(trainNumber)}</strong></div>`
       : '';
 
     const timesHtml = `
@@ -341,7 +343,7 @@ class TransitMessagesCard extends HTMLElement {
     if (!ts) return '';
     try {
       const d = ts instanceof Date ? ts : new Date(ts as any);
-      if (isNaN(d.getTime())) return '';
+      if (Number.isNaN(d.getTime())) return '';
       return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
     } catch {
       return '';
@@ -370,6 +372,55 @@ class TransitMessagesCard extends HTMLElement {
     return null;
   }
 }
+
+
+function hslToHex(h: number, s: number, l: number): string {
+  s /= 100;
+  l /= 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+
+  if (0 <= h && h < 60) {
+    r = c;
+    g = x;
+    b = 0;
+  } else if (60 <= h && h < 120) {
+    r = x;
+    g = c;
+    b = 0;
+  } else if (120 <= h && h < 180) {
+    r = 0;
+    g = c;
+    b = x;
+  } else if (180 <= h && h < 240) {
+    r = 0;
+    g = x;
+    b = c;
+  } else if (240 <= h && h < 300) {
+    r = x;
+    g = 0;
+    b = c;
+  } else {
+    r = c;
+    g = 0;
+    b = x;
+  }
+
+  const toHex = (v: number) => {
+    const h = Math.round((v + m) * 255).toString(16).padStart(2, "0");
+    return h;
+  };
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+export function trainNumberToColor(trainNumber: number): string {
+  const hue = trainNumber % 360;
+  return hslToHex(hue, 65, 55); // s=65%, l=55% -> gute Lesbarkeit
+}
+
 
 // Registrierung als Custom Element (so wie im Original)
 if (!customElements.get('transit-messages-card')) {
