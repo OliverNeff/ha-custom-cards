@@ -75,7 +75,7 @@ jobs:
           name: dist
           path: /tmp/ha-cards
 
-      - name: Deploy every *.json to community/<basename>
+      - name: Deploy every *.js to community/<basename>
         run: |
           SRC_DIR="/tmp/ha-cards"
 
@@ -84,10 +84,10 @@ jobs:
 
           shopt -s nullglob
           # suche JSONs im Root und einem optionalen Unterordner
-          files=( "${SRC_DIR}"/*.json "${SRC_DIR}"/*/*.js )
+          files=( "${SRC_DIR}"/*.js "${SRC_DIR}"/*/*.js )
 
           if [ ${#files[@]} -eq 0 ]; then
-           echo "No JSON files found under '${SRC_DIR}'." >&2
+           echo "No JS files found under '${SRC_DIR}'." >&2
           exit 1
           fi
 
