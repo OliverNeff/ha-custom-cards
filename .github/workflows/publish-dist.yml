@@ -8,8 +8,7 @@ on:
 permissions:
   contents: write
   actions: read
-
-# Verhindert parallele Runs auf dem gleichen Branch (z. B. bei schnellen Pushes)
+  
 concurrency:
   group: publish-dist-${{ github.ref }}
   cancel-in-progress: true
@@ -34,7 +33,7 @@ jobs:
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Install dependencies (Yarn)
+      - name: Install Dependencies (Yarn)
         run: yarn install --frozen-lockfile
 
       - name: Configure git user
@@ -42,25 +41,22 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-       # 1) Patch-Version in package.json erhöhen
-      - name: Bump patch
-        run: |
-          yarn --version
-          yarn version --patch -m "chore: bump version to %s [skip ci]"
-          git push origin HEAD:main
-
-      # 2) Build (Passe den Befehl bei Bedarf an, z. B. Vite/Rollup)
       - name: Build
         run: yarn build
 
-      # 3) dist/ als Artefakt bereitstellen (beim Workflow-Run downloadbar)
-      - name: Upload dist artifact
+      - name: Upload Distribution Artifact
         uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
           if-no-files-found: error
           retention-days: 14
+          
+      - name: Bump Patch-Version
+        run: |
+          yarn --version
+          yarn version --patch -m "chore: bump version to %s [skip ci]"
+          git push origin HEAD:main
           
   deploy_to_ha:
     needs: build_dist
