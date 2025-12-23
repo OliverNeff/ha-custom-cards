@@ -61,3 +61,39 @@ jobs:
           path: dist/
           if-no-files-found: error
           retention-days: 14
+          
+  deploy_to_ha:
+    needs: build_dist
+    runs-on: [ self-hosted, raspi ]
+    env:
+      COMMUNITY_ROOT: /opt/homeassistant/config/www/community
+
+    steps: 
+      - name: Download Distribution
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-zip
+          path: /tmp/ha-card
+      
+      - name: Unpack dist.zip to temp
+        run: |
+          cd /tmp/ha-cards
+          rm -rf unpack && mkdir -p unpack
+          unzip -o dist.zip -d unpack
+          ls -l unpack
+
+      - name: Deploy every *.json to community/<basename>
+        run: |
+          ROOT="/tmp/ha-cards/unpack"
+          shopt -s nullglob
+          for FILE in "$ROOT"/*.json "$ROOT"/*/*.json; do
+            NAME="$(basename "$FILE" .json)"     # z. B. transit-messages-card
+            TARGET="${COMMUNITY_ROOT}/${NAME}"
+            echo ">> Deploying $(basename "$FILE") -> ${TARGET}/$(basename "$FILE")"
+
+            sudo mkdir -p "$TARGET"
+            sudo cp -f "$FILE" "$TARGET/$(basename "$FILE")"
+            sudo chown root:root "$TARGET/$(basename "$FILE")"
+            sudo chmod 644 "$TARGET/$(basename "$FILE")"
+          done
+          echo "All JSON cards deployed. Please hard-refresh your browser (Ctrl+F5)."
