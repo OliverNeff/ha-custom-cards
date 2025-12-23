@@ -74,17 +74,10 @@ jobs:
         with:
           name: dist
           path: /tmp/ha-cards
-      
-      - name: Unpack dist.zip to temp
-        run: |
-          cd /tmp/ha-cards
-          rm -rf unpack && mkdir -p unpack
-          unzip -o dist.zip -d unpack
-          ls -l unpack
 
       - name: Deploy every *.json to community/<basename>
         run: |
-          ROOT="/tmp/ha-cards/unpack"
+          ROOT="/tmp/ha-cards"
           shopt -s nullglob
           for FILE in "$ROOT"/*.json "$ROOT"/*/*.json; do
             NAME="$(basename "$FILE" .json)"     # z. B. transit-messages-card
