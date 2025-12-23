@@ -84,7 +84,7 @@ jobs:
 
           shopt -s nullglob
           # suche JSONs im Root und einem optionalen Unterordner
-          files=( "${SRC_DIR}"/*.json "${SRC_DIR}"/*/*.json )
+          files=( "${SRC_DIR}"/*.json "${SRC_DIR}"/*/*.js )
 
           if [ ${#files[@]} -eq 0 ]; then
            echo "No JSON files found under '${SRC_DIR}'." >&2
@@ -92,7 +92,7 @@ jobs:
           fi
 
           for FILE in "${files[@]}"; do
-            NAME="$(basename "$FILE" .json)"            # Zielordner = Basename
+            NAME="$(basename "$FILE" .js)"            # Zielordner = Basename
             TARGET="${COMMUNITY_ROOT}/${NAME}"
             echo ">> Deploying $(basename "$FILE") -> ${TARGET}/$(basename "$FILE")"
 
