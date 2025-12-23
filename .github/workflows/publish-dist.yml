@@ -63,6 +63,7 @@ jobs:
     runs-on: [ self-hosted, raspi ]
     env:
       COMMUNITY_ROOT: /opt/homeassistant/config/www/community
+      SRC_DIR: /tmp/ha-cards
 
     steps: 
       - name: Download Distribution
@@ -73,13 +74,10 @@ jobs:
 
       - name: Deploy every *.js to community/<basename>
         run: |
-          SRC_DIR="/tmp/ha-cards"
-
           echo "Contents of ${SRC_DIR}:"
           ls -la "${SRC_DIR}" || true
 
           shopt -s nullglob
-          # suche JSONs im Root und einem optionalen Unterordner
           files=( "${SRC_DIR}"/*.js "${SRC_DIR}"/*/*.js )
 
           if [ ${#files[@]} -eq 0 ]; then
@@ -88,7 +86,7 @@ jobs:
           fi
 
           for FILE in "${files[@]}"; do
-            NAME="$(basename "$FILE" .js)"            # Zielordner = Basename
+            NAME="$(basename "$FILE" .js)"
             TARGET="${COMMUNITY_ROOT}/${NAME}"
             echo ">> Deploying $(basename "$FILE") -> ${TARGET}/$(basename "$FILE")"
 
@@ -97,4 +95,15 @@ jobs:
             sudo chown root:root "$TARGET/$(basename "$FILE")"
             sudo chmod 644 "$TARGET/$(basename "$FILE")"
           done
-          echo "All JSON cards deployed. Please hard-refresh your browser (Ctrl+F5)."
+          echo "All JSON cards deployed. Please hard-refresh your browser."
+
+      - name: Cleanup Temp-Folder
+        if: always()
+        run: |
+          if [ -d "${SRC_DIR}" ]; then
+            echo "Removing ${SRC_DIR} ..."
+            sudo rm -rf "${SRC_DIR}"
+            echo "Cleanup complete."
+          else
+            echo "${SRC_DIR} does not exist. Nothing to clean."
+          fi
