@@ -73,7 +73,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dist
-          path: /tmp/ha-card
+          path: /tmp/ha-cards
       
       - name: Unpack dist.zip to temp
         run: |
