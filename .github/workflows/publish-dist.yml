@@ -77,10 +77,22 @@ jobs:
 
       - name: Deploy every *.json to community/<basename>
         run: |
-          ROOT="/tmp/ha-cards"
+          SRC_DIR="/tmp/ha-cards"
+
+          echo "Contents of ${SRC_DIR}:"
+          ls -la "${SRC_DIR}" || true
+
           shopt -s nullglob
-          for FILE in "$ROOT"/*.json "$ROOT"/*/*.json; do
-            NAME="$(basename "$FILE" .json)"     # z. B. transit-messages-card
+          # suche JSONs im Root und einem optionalen Unterordner
+          files=( "${SRC_DIR}"/*.json "${SRC_DIR}"/*/*.json )
+
+          if [ ${#files[@]} -eq 0 ]; then
+           echo "No JSON files found under '${SRC_DIR}'." >&2
+          exit 1
+          fi
+
+          for FILE in "${files[@]}"; do
+            NAME="$(basename "$FILE" .json)"            # Zielordner = Basename
             TARGET="${COMMUNITY_ROOT}/${NAME}"
             echo ">> Deploying $(basename "$FILE") -> ${TARGET}/$(basename "$FILE")"
 
