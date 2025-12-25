@@ -57,6 +57,7 @@ export interface TransitMessagesCardConfig {
   type: 'custom:transit-messages-card';
   title?: string;
   entity: string;
+  train_number_filter_entity?: string | null;
   departures_attribute?: string;          // default: 'next_departures'
   mode?: Mode;                            // 'list' | 'selected'
   count?: number;                         // für 'list'
@@ -93,7 +94,7 @@ class TransitMessagesCard extends HTMLElement {
   }
 
   setConfig(config: TransitMessagesCardConfig): void {
-    if (!config || !config.entity) {
+    if (!config?.entity) {
       throw new Error("Konfiguration benötigt: 'entity' (z. B. sensor.<station>_departures)");
     }
     this._config = {
@@ -180,8 +181,8 @@ class TransitMessagesCard extends HTMLElement {
     const attr = stateObj.attributes ?? {};
     const allRaw = Array.isArray(attr[departures_attribute]) ? (attr[departures_attribute] as Departure[]) : [];
     const all: Departure[] = allRaw ?? [];
-
-    const filtered = all.filter((c) => this._matchesContains(c));
+    const trainFilterValue = this._readTrainNumberFilter(this._config.train_number_filter_entity);
+    const filtered = all.filter((c) => this._matchesContains(c) && this._matchesTrainNumber(c, trainFilterValue));
     const notCancelled = filtered.filter((c) => !this._isCancelled(c));
     const cancelledFiltered = filtered.filter((c) => this._isCancelled(c));
     const cancelledAll = all.filter((c) => this._isCancelled(c));
@@ -333,6 +334,27 @@ class TransitMessagesCard extends HTMLElement {
 
     return dest.includes(needle) || routeJoined.includes(needle);
   }
+
+  private _readTrainNumberFilter(entityId?: string | null): number | null {
+    if (!entityId) return null;
+    const st = this._hass?.states?.[entityId]?.state;
+    if (st === undefined || st === null) return null;
+
+    const v = parseInt(String(st), 10);
+    if (!Number.isFinite(v) || Number.isNaN(v) || v === -1) return null; // -1 => kein Filter
+    return v;
+  }
+
+  private _matchesTrainNumber(c: any, filter: number | null): boolean {
+    if (filter === null) return true;
+    const raw = c?.trainNumber;
+    if (raw === undefined || raw === null || raw === "") return false;
+
+    const num = typeof raw === "string" ? parseInt(raw, 10) : Number(raw);
+    if (!Number.isFinite(num)) return false;
+    return num === filter;
+  }
+
 
   private _formatContainsForTitle(): string {
     const val = (this._config?.contains ?? '').trim();

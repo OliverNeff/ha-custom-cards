@@ -33,7 +33,8 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Minimaler hass-Mock mit einer Demo-Entität
+
+// Minimaler hass-Mock mit Demo-Entitäten
 const hass: any = {
     states: {
         'sensor.frankfurt_hbf_departures': {
@@ -63,9 +64,20 @@ const hass: any = {
                     }
                 ]
             }
+        },
+
+        // 👇 NEW: Number-Helper für den Filter
+        'input_number.train_number_filter_dieburg': {
+            state: '-1', // -1 => kein Filter. Zum Test auf '24524' setzen.
+            attributes: {
+                min: -1,
+                max: 99999,
+                step: 1
+            }
         }
     }
 };
+
 
 // Card instanziieren
 const el = document.createElement('transit-messages-card') as any;
@@ -73,6 +85,7 @@ el.setConfig({
     type: 'custom:transit-messages-card',
     title: 'Abfahrten',
     entity: 'sensor.frankfurt_hbf_departures',
+    train_number_filter_entity: 'input_number.train_number_filter_dieburg',
     mode: 'list',
     count: 5,
     show_platform: true,
