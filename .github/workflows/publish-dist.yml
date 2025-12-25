@@ -14,10 +14,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_dist:
+  tests:
     runs-on: ubuntu-latest
     # Endlosschleife vermeiden: eigene Bot-Commits sollen nicht erneut triggern
     if: github.actor != 'github-actions[bot]'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'yarn'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install Dependencies (Yarn)
+        run: yarn install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: yarn postinstall
+
+      - name: Run vitest
+        env:
+          CI: 'true'
+        run: yarn test
+
+  build_dist:
+    needs: tests
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
